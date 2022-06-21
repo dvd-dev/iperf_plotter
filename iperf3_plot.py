@@ -17,7 +17,7 @@ from optparse import OptionParser
 
 pp = pprint.PrettyPrinter(indent=4, stream=sys.stderr)
 
-class iperf3_plotter(object):
+class Plotter(object):
     def __init__(self, upperLimit, lowerLimit,bound):
         sns.set_style("white")
         self.upperbond=upperLimit
@@ -134,7 +134,7 @@ class iperf3_plotter(object):
         plt.text(x_max, y_max, desc, fontsize=10) 
         plt.savefig(filename, bbox_inches="tight") 
 
-class iperf3_dataParser(object):
+class Parser(object):
     def getOptionParser(self):
         usage = '%prog [ -f FOLDER | -o OUT | -p PLOTFILES | -n NOPLOTFILES | -v ]'
         return OptionParser(usage=usage)
@@ -146,8 +146,8 @@ class iperf3_dataParser(object):
                       help='Input folder absolute path. [Input Format: /Users/iperfExp]')
 
         parser.add_option('-o', '--output', metavar='OUT',
-                      type='string', dest='output', default="iperf.png",
-                      help='Plot file name. [Input Format: iperf.png]')
+                      type='string', dest='output', default="out",
+                      help='Output folder')
 
         parser.add_option('-p', '--plotfiles', metavar='PLOT_FILES',
                       type='string', dest='plotFiles', default="",
@@ -273,14 +273,14 @@ class iperf3_dataParser(object):
         return dataset
 
 # if __name__ == '__main__':
-#     s = iperf3_dataParser()
+#     s = Parser()
 #     (foldername, plotFiles, noPlotFiles, output, upperLimit, lowerLimit,bound) = s.parseOptions(sys.argv[1:])
 #     print (foldername, plotFiles, noPlotFiles, output, upperLimit, lowerLimit,bound)
 
 
 if __name__ == '__main__':
     """Execute the read and formatting."""
-    s = iperf3_dataParser()
+    s = Parser()
     (foldername, plotFiles, noPlotFiles, output, upperLimit, lowerLimit, bound) = s.parseOptions(sys.argv[1:])
     print('foldername {}\nplotFiles {}\nnoPlotFiles {}\noutput {}\nupperLimit {}\nlowerLimit {}\nbound {}\n'.format(foldername,str(plotFiles), str(noPlotFiles), output, upperLimit, lowerLimit,str(bound)))
 
@@ -289,29 +289,31 @@ if __name__ == '__main__':
 
     if len(plotFiles) > 0:
         dataset = s.get_dataset(plotFiles)
-        plotter = iperf3_plotter(upperLimit, lowerLimit, bound)
+        plotter = Plotter(upperLimit, lowerLimit, bound)
+
         #plot overall box
-        dataset.to_csv(output+".csv")
-        dataset.describe().to_csv(output + "_stats.csv")
+        dataset.to_csv(os.path.join(output, "iperf.csv"))
+        dataset.describe().to_csv(os.path.join(output, "iperf_stats.csv"))
         desc="x_labels: Seconds\ny_lebel: Mbps\nclients: "+str(len(dataset.columns))
         title= "iperf throughput Mbps per seconds"
         # if len(bound) > 0:
-        plotter.plotBox(dataset,output, desc, title)
+        png_file = os.path.join(output, "iperf.png")
+        plotter.plotBox(dataset, png_file, desc, title)
 
         #plot individual
         if upperLimit>=0 and lowerLimit >=0:
             s=0
             e=0
             shift=5
-            output_single = output
+            output_single = png_file
             while e < len(dataset.columns):
                 e = e + shift
                 if e >=len(dataset.columns):
                     e = len(dataset.columns)
                 plotDf = dataset[dataset.columns[s:e]]
-                output_single = output.replace(".png", "_line_"+str(s)+".png")
+                output_single = png_file.replace(".png", "_line_"+str(s)+".png")
                 plotter.plotLine(plotDf, output_single,desc, title, shift)
-                output_single = output
+                output_single = png_file
                 s = e
 
         #plot all lines, sort by mean value/column
@@ -320,4 +322,4 @@ if __name__ == '__main__':
             # last_row_name = dataset.index[-1]
             # dataset = dataset.T.sort(columns=last_row_name, ascending=False).T
             # dataset.to_csv(output + "_sort_by_mean.csv")
-            plotter.plotLinePretty(dataset, output,desc, title)
+            plotter.plotLinePretty(dataset, png_file, desc, title)
