@@ -1,5 +1,7 @@
 # iperfPlotter
 
+This repo wasn't maintained since the last 5 years, trying to add some little things that I need.
+
 ## 1.Introduction
 Iperf3 plotter is a graphing tool to generate statistical chart for iperf3 experimental result. Iperf3 output json file as result, which is not easy to view straightforwardly. This plotter will transform json data into line chart, box chart and csv file with better explanation power.
 
@@ -7,10 +9,7 @@ Iperf3 plotter is a graphing tool to generate statistical chart for iperf3 exper
 Ipef3 plotter runs on Python, version 2.7+ and 3.3+. Plotting requires matplotlib, pandas, numpy and seaborn to be pre-installed. Replace pip wit pip3 if python3 is used.
 
 ```
-pip install numpy
-pip install pandas
-pip install seaborn
-pip install matplotlib
+pip install -r requirements.txt
 ```
 
 ## 3.Quick start
